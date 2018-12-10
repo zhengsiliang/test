@@ -1,4 +1,4 @@
-package thread;
+package lock;
 
 /**
  * @author siliang.zheng
