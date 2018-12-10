@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.owitho.sso.mapper.UserPermMapper">
+    <resultMap id="BaseResultMap" type="java.util.HashMap">
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="permission" jdbcType="VARCHAR" property="permission"/>
+    </resultMap>
+
+    <resultMap id="UserInfoMap" type="com.owitho.sso.model.UserInfo">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="realname" jdbcType="VARCHAR" property="realname"/>
+        <result column="nickname" jdbcType="VARCHAR" property="nickname"/>
+        <result column="cellphone" jdbcType="VARCHAR" property="cellphone"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="signature" jdbcType="VARCHAR" property="signature"/>
+        <result column="city" jdbcType="VARCHAR" property="city"/>
+        <result column="code" jdbcType="VARCHAR" property="cityCode"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+    </resultMap>
+
+    <select id="getUserPermInfoByNameAndPrefix" resultMap="BaseResultMap">
+        select r.name, concat(p.prefix, '_', p.module,":",p.operation,":",p.value) as permission
+        from sso_user u
+        left join sso_user_role_rel ur on u.id = ur.user_id
+        left join sso_role r on ur.role_id = r.id
+        left join sso_role_permission_rel rp on r.id = rp.role_id
+        left join sso_permission p on rp.permisson_id = p.id
+        <where>
+            <if test="username != null and username !='' ">
+                u.name = #{username,jdbcType=VARCHAR}
+            </if>
+            <if test="prefix != null and prefix !='' ">
+                AND p.prefix like CONCAT('%', #{prefix}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getUserList" resultMap="UserInfoMap" parameterType="com.owitho.sso.model.UserInfoRequest">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.city,u.status,u.type,c.code
+        from sso_user u LEFT JOIN sso_city c ON u.city = c.id
+        <where>
+            <if test="name != null and name !='' ">
+                u.name = #{name}
+            </if>
+            <if test="realname != null and realname !='' ">
+                and u.realname like CONCAT('%', #{realname}, '%')
+            </if>
+            <if test="nickname != null and nickname !='' ">
+                and u.nickname like CONCAT('%', #{nickname}, '%')
+            </if>
+            <if test="cellphone != null and cellphone !='' ">
+                and u.cellphone = #{cellphone}
+            </if>
+        </where>
+        limit #{start},#{limit}
+    </select>
+
+    <select id="getOwithoUserList" resultMap="UserInfoMap" parameterType="com.owitho.sso.model.UserInfoRequest">
+        select id,name,realname,nickname,cellphone,email,signature,city,status,type
+        from sso_user u
+        <where>
+            u.type in (0,1,30)
+            <if test="name != null and name !='' ">
+              and u.name = #{name}
+            </if>
+            <if test="realname != null and realname !='' ">
+                and u.realname like CONCAT('%', #{realname}, '%')
+            </if>
+            <if test="nickname != null and nickname !='' ">
+                and u.nickname like CONCAT('%', #{nickname}, '%')
+            </if>
+            <if test="cellphone != null and cellphone !='' ">
+                and u.cellphone = #{cellphone}
+            </if>
+        </where>
+        limit #{start},#{limit}
+    </select>
+
+    <select id="getUserByCondition" resultMap="UserInfoMap">
+       select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.type,u.status,c.name city,c.code
+       from sso_user u LEFT JOIN sso_city c ON u.city = c.id
+       where u.name like CONCAT('%', #{condition}, '%')  or
+        u.realname like CONCAT('%', #{condition}, '%') or
+        u.nickname like CONCAT('%', #{condition}, '%') or
+         u.cellphone like CONCAT('%', #{condition}, '%') or
+         u.email like CONCAT('%', #{condition}, '%')
+         order by u.name = #{condition} desc
+         , u.realname = #{condition} desc
+         , u.nickname = #{condition} desc
+         , u.cellphone = #{condition} desc
+         , u.email = #{condition} desc
+         limit 0, 10
+    </select>
+
+    <select id="getUserByConditionAndRoleId" resultMap="UserInfoMap">
+        select DISTINCT (u.id),u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature
+        from sso_user u INNER join sso_user_role_rel ur
+        on u.id = ur.user_id  and  ur.role_id = #{roleId}
+        WHERE u.name like CONCAT('%', #{condition}, '%')  or
+        u.realname like CONCAT('%', #{condition}, '%') or
+        u.nickname like CONCAT('%', #{condition}, '%') or
+        u.cellphone like CONCAT('%', #{condition}, '%') or
+        u.email like CONCAT('%', #{condition}, '%')
+    </select>
+
+    <select id="countUserList" parameterType="com.owitho.sso.model.UserInfoRequest" resultType="java.lang.Integer">
+        select count(1)
+        from sso_user u
+        <where>
+            <if test="name != null and name !='' ">
+               u.name = #{name}
+            </if>
+            <if test="realname != null and realname !='' ">
+                and u.realname like CONCAT('%', #{realname}, '%')
+            </if>
+            <if test="nickname != null and nickname !='' ">
+                and u.nickname like CONCAT('%', #{nickname}, '%')
+            </if>
+            <if test="cellphone != null and cellphone !='' ">
+                and u.cellphone = #{cellphone}
+            </if>
+        </where>
+    </select>
+
+    <select id="countOwithoUserList" parameterType="com.owitho.sso.model.UserInfoRequest" resultType="java.lang.Integer">
+        select count(1)
+        from sso_user u
+        <where>
+            u.type in (0,1,30)
+            <if test="name != null and name !='' ">
+                and u.name = #{name}
+            </if>
+            <if test="realname != null and realname !='' ">
+                and u.realname like CONCAT('%', #{realname}, '%')
+            </if>
+            <if test="nickname != null and nickname !='' ">
+                and u.nickname like CONCAT('%', #{nickname}, '%')
+            </if>
+            <if test="cellphone != null and cellphone !='' ">
+                and u.cellphone = #{cellphone}
+            </if>
+        </where>
+    </select>
+
+    <select id="getRoleUsers" resultMap="UserInfoMap" parameterType="java.lang.Integer">
+    select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.city,u.status,u.type from sso_user u left join sso_user_role_rel ur on u.id = ur.user_id
+    left join sso_role r on ur.role_id = r.id
+    where r.id = #{roleId}
+    </select>
+
+    <select id="getRoleAdmins" resultMap="UserInfoMap" parameterType="java.lang.Integer">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.city,u.status,u.type from sso_user u left join sso_user_permission_rel up on u.id = up.user_id
+        left join sso_permission p on up.permission_id = p.id
+        where p.prefix = 'perm' and p.module = 'role' and p.operation = 'update' and p.value = #{roleId}
+    </select>
+
+    <select id="getAdminRolesByUserName" resultType="java.lang.String">
+        select p.value
+        from sso_permission p inner join sso_user_permission_rel up on up.permission_id = p.id
+        inner join sso_user u on u.id = up.user_id
+        where p.prefix = 'perm' and p.module = 'role' and p.operation = 'update' and u.name = #{username}
+    </select>
+
+    <delete id="deleteUserPerm">
+        delete from sso_user_permission_rel where user_id = #{userId} and permission_id = #{permId}
+    </delete>
+
+    <insert id="addUserPerm" parameterType="com.owitho.sso.model.UserPermRelPo">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into sso_user_permission_rel (user_id, permission_id, create_by, create_time, update_by, update_time)
+        values (#{userId,jdbcType=INTEGER}, #{permissionId,jdbcType=INTEGER}, #{createBy,jdbcType=INTEGER},
+        #{createTime,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=INTEGER}, #{updateTime,jdbcType=TIMESTAMP})
+    </insert>
+
+
+    <select id="getPermUsers" resultMap="UserInfoMap" parameterType="java.lang.Integer">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.city,u.status,u.type from sso_user u left join sso_user_permission_rel up on u.id = up.user_id
+        left join sso_permission p on up.permission_id = p.id
+        where p.id = #{permId}
+    </select>
+
+
+</mapper>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.owitho.sso.mapper.LoginWarnMapper">
+
+
+    <insert id="addLoginWarn" parameterType="com.owitho.sso.model.LoginWarnPo">
+        INSERT INTO sso_login_warn (login_name, warn_info, last_login_info, login_info, create_by, create_time, update_by, update_time)
+        VALUES(#{loginName},  #{warnInfo}, #{lastLoginInfo}, #{loginInfo}, '', now(), '', now())
+    </insert>
+
+</mapper>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.owitho.sso.mapper.AdminMapper">
+
+    <sql id="SelectSql">
+        SELECT
+        `id`, `user_id` userId, `type`, `function_id` functionId,
+        create_by createBy, create_time createTime,
+        update_by updateBy, update_time updateTime
+        FROM sso_admin
+    </sql>
+
+    <insert id="insert">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into sso_admin (`user_id`, `type`,`function_id`, create_by, update_by)
+        values (#{userId}, #{type}, #{functionId}, #{createBy}, #{updateBy})
+    </insert>
+
+    <select id="findAll" resultType="com.owitho.sso.model.AdminPo">
+        <include refid="SelectSql"/>
+        ORDER by create_time DESC
+    </select>
+
+    <select id="getAdminsByFunctionIdAndType" resultType="com.owitho.sso.model.UserInfo">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.city,u.status,u.type
+        from sso_admin a
+        left JOIN sso_user u ON a.user_id = u.id
+        WHERE a.function_id = #{roleId} AND a.type = #{type}
+    </select>
+
+
+
+    <select id="selectByUserName" resultType="com.owitho.sso.model.AdminInfo">
+        select  a.id, a.user_id userId, a.type, a.function_id functionId,
+        a.create_by createBy, a.create_time createTime,
+        a.update_by updateBy, a.update_time updateTime
+        from sso_admin a left JOIN sso_user u ON a.user_id = u.id
+        WHERE u.name = #{userName}
+    </select>
+
+    <select id="getFunctionIdByUserNameAndFunctionType" resultType="java.lang.Integer">
+        select  a.function_id
+        from sso_admin a left JOIN sso_user u ON a.user_id = u.id
+        WHERE u.name = #{userName} AND a.type = #{type}
+    </select>
+
+    <select id="selectByUserIdAndFunctionIdAndType" resultType="com.owitho.sso.model.AdminPo">
+        <include refid="SelectSql"/>
+        WHERE user_id = #{userId} AND function_id = #{functionId} AND `type` = #{type}
+    </select>
+
+
+    <delete id="deleteByUserIdAndFunctionIdAndType">
+        delete from sso_admin
+        WHERE user_id = #{userId} AND function_id = #{functionId} AND `type` = #{type}
+    </delete>
+
+    <delete id="deleteByUserId">
+        delete from sso_admin
+        WHERE user_id = #{userId}
+    </delete>
+
+</mapper>

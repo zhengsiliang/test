@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.owitho.sso.mapper.UserInfoMapper">
+
+    <resultMap id="UserInfoMap" type="com.owitho.sso.model.UserInfo">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="realname" jdbcType="VARCHAR" property="realname"/>
+        <result column="nickname" jdbcType="VARCHAR" property="nickname"/>
+        <result column="cellphone" jdbcType="VARCHAR" property="cellphone"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="signature" jdbcType="VARCHAR" property="signature"/>
+        <result column="city" jdbcType="VARCHAR" property="city"/>
+        <result column="code" jdbcType="VARCHAR" property="cityCode"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+    
+    <resultMap id="UserInfoBoMap" type="com.owitho.sso.bo.UserInfoBo">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="realname" jdbcType="VARCHAR" property="realname"/>
+        <result column="nickname" jdbcType="VARCHAR" property="nickname"/>
+        <result column="cellphone" jdbcType="VARCHAR" property="cellphone"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="signature" jdbcType="VARCHAR" property="signature"/>
+    </resultMap>
+
+    <insert id="addUser">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into sso_user (name,realname,displayname,nickname,password,cellphone,email,signature,city,status,type)
+        values (#{u.name,jdbcType=VARCHAR}, #{u.realname,jdbcType=VARCHAR},#{u.displayName,jdbcType=VARCHAR},
+        #{u.nickname,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{u.cellphone,jdbcType=VARCHAR},
+        #{u.email,jdbcType=VARCHAR}, #{u.signature,jdbcType=VARCHAR}, #{u.city,jdbcType=INTEGER}, #{u.status,jdbcType=INTEGER}, #{u.type,jdbcType=INTEGER})
+    </insert>
+
+    <select id="getUserByName" resultMap="UserInfoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.city, c.code, u.status,u.type
+        from sso_user u left join sso_city c on u.city = c.id
+        where u.name = #{name} limit 1
+    </select>
+
+    <select id="getUserByNameAndPassword" resultMap="UserInfoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.city, c.code, u.status,u.type
+        from sso_user u left join sso_city c on u.city = c.id
+        where u.name = #{name} and u.password = #{password} limit 1
+    </select>
+
+    <select id="getUserById" resultMap="UserInfoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.city, c.code, u.status,u.type
+        from sso_user u left join sso_city c on u.city = c.id
+        where u.id = #{id}
+    </select>
+
+    <update id="updateUserByUserIdAndStatus">
+        update sso_user
+        set status = #{status}
+        where id = #{id}
+    </update>
+
+    <update id="updateUser" parameterType="com.owitho.sso.model.UserInfoVo">
+        update sso_user u
+        <set>
+            <if test="name != null">
+                name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="realname != null">
+                realname = #{realname,jdbcType=VARCHAR},
+            </if>
+            <if test="nickname != null">
+                nickname = #{nickname,jdbcType=VARCHAR},
+            </if>
+            <if test="cellphone != null">
+                cellphone = #{cellphone,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                email = #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="signature != null">
+                signature = #{signature,jdbcType=VARCHAR},
+            </if>
+            <if test="city != null">
+                city = #{city,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="type != null">
+                u.type = #{type,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="getUserInfo" resultMap="UserInfoBoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature, u.status,u.type
+        from sso_user u
+        where name like CONCAT('%', #{name}, '%')  or realname like CONCAT('%', #{name}, '%')
+    </select>
+
+    <select id="getUserInfoByIds" resultMap="UserInfoBoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature, u.status,u.type
+        from sso_user u
+        where id in
+        <foreach collection="list" item="userId" index="index"
+                 open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+    </select>
+
+    <select id="getUserInfoByName" resultMap="UserInfoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature, u.status,u.type
+        from sso_user u
+        where name like CONCAT('%', #{name}, '%')  or realname like CONCAT('%', #{name}, '%')
+    </select>
+
+    <select id="getUserInformationByIds" resultMap="UserInfoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature, u.status,u.type
+        from sso_user u
+        where id in
+        <foreach collection="list" item="userId" index="index"
+                 open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+    </select>
+
+    <update id="resetPassword">
+        update sso_user set password = #{password} where id = #{id}
+    </update>
+
+    <select id="getAllSimplePswUsers" resultMap="UserInfoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email from sso_user u where password = #{password}
+    </select>
+
+    <select id="getUserPsw" resultType="java.lang.String">
+        select password from sso_user where name = #{name}
+    </select>
+
+    <select id="getUserListByConditionAndCityId" resultMap="UserInfoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.type,u.status,u.city
+        from sso_user u INNER JOIN sso_city c ON u.city = c.id
+        where u.name like CONCAT('%', #{condition}, '%')  or
+        u.realname like CONCAT('%', #{condition}, '%') or
+        u.nickname like CONCAT('%', #{condition}, '%') or
+        u.cellphone like CONCAT('%', #{condition}, '%') or
+        u.email like CONCAT('%', #{condition}, '%')
+        and c.code = #{cityCode};
+    </select>
+
+    <select id="getUserIdsByUserNames" resultMap="UserInfoMap">
+        select u.id,u.name
+        from sso_user u
+        where name in
+        <foreach collection="list" item="name" index="index"
+                 open="(" close=")" separator=",">
+            #{name}
+        </foreach>
+    </select>
+
+    <update id="setSynStatus">
+        update sso_user u set u.syn_status = #{synStatus} WHERE u.name = #{name}
+    </update>
+    <select id="getUserInfoBySynStatus" resultType="com.owitho.sso.model.UserInfoVo">
+        select u.id,u.name,u.realname,u.displayname displayName,u.nickname,u.cellphone,u.email,u.signature, u.status,u.type,u.create_time createTime
+        from sso_user u
+        where syn_status = #{synStatus}
+    </select>
+
+
+    <select id="getUserListByConditionAndCityCodesAndRoleIds" resultMap="UserInfoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.type,u.status,u.city
+        from sso_user u
+        INNER JOIN sso_city c ON u.city = c.id
+        INNER JOIN sso_user_role_rel ur on u.id = ur.user_id
+        <where>
+            <if test="cityCodes != null">
+                c.code in
+                <foreach collection="cityCodes" item="cityCode" index="index"
+                         open="(" close=")" separator=",">
+                    #{cityCode}
+                </foreach>
+            </if>
+            <if test="roleIds != null">
+                and ur.role_id in
+                <foreach collection="roleIds" item="roleId" index="index"
+                         open="(" close=")" separator=",">
+                    #{roleId}
+                </foreach>
+            </if>
+            <if test="condition != null">
+                and ( u.name like CONCAT('%', #{condition}, '%') or
+                u.realname like CONCAT('%', #{condition}, '%') or
+                u.nickname like CONCAT('%', #{condition}, '%') or
+                u.cellphone like CONCAT('%', #{condition}, '%') or
+                u.email like CONCAT('%', #{condition}, '%') )
+            </if>
+        </where>
+    </select>
+
+    <select id="getUserListByUsernameRegExp" resultMap="UserInfoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.city, c.code, u.status,u.type
+        from sso_user u left join sso_city c on u.city = c.id
+        where u.name REGEXP CONCAT('^', #{name}, '[0-9]*$')
+    </select>
+
+    <select id="getUserByIds" resultMap="UserInfoMap">
+        select u.id,u.name,u.realname,u.nickname,u.cellphone,u.email,u.signature,u.city, u.status,u.type
+        from sso_user u
+        where u.id in
+        <foreach collection="list" item="userId" index="index"
+                 open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+    </select>
+
+    <select id="getUsersByPwds" resultType="string">
+        select u.cellphone
+        from sso_user u
+        where u.status = 0
+        AND u.type in (0,1,30)
+        AND  u.password in
+        <foreach collection="list" item="pwd" index="index"
+                 open="(" close=")" separator=",">
+            #{pwd}
+        </foreach>
+    </select>
+
+
+</mapper>

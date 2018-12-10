@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.owitho.sso.mapper.SystemAnalysisMapper" >
+  <resultMap id="BaseResultMap" type="com.owitho.sso.model.SystemAnalysisPo" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="system_id" property="systemId" jdbcType="INTEGER" />
+    <result column="system_name" property="systemName" jdbcType="VARCHAR" />
+    <result column="system_domain" property="systemDomain" jdbcType="VARCHAR" />
+    <result column="counts" property="counts" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="create_by" property="createBy" jdbcType="VARCHAR" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="update_by" property="updateBy" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, system_id, system_name, system_domain, counts, create_time, create_by, update_time, 
+    update_by
+  </sql>
+
+  <select id="selectByTimePeriod" resultType="com.owitho.sso.model.SystemAnalysisInfo">
+    select l.id,l.system_id systemId,l.system_name systemName,l.system_domain systemDomain, date_format(l.create_time,'%Y-%m-%d') createTime, counts
+    from sso_system_analysis l
+    where create_time BETWEEN #{beginTime} AND #{endTime}
+  </select>
+
+  <insert id="insert" parameterType="com.owitho.sso.model.SystemAnalysisPo" >
+  <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+    SELECT LAST_INSERT_ID()
+  </selectKey>
+  insert into sso_system_analysis (id, system_id, system_name,
+  system_domain, counts, create_time, create_by, update_time, update_by)
+  values (#{id}, #{systemId}, #{systemName}, #{systemDomain}
+  , #{counts}, #{createTime}, #{createBy}, #{updateTime}, #{updateBy})
+</insert>
+
+  <insert id="insertList">
+    insert into sso_system_analysis (system_id, system_name,system_domain, counts, create_time)
+    values
+    <foreach collection="list" item="s" index="index"
+              separator=",">
+      (#{s.systemId}, #{s.systemName}, #{s.systemDomain}, #{s.counts}, #{s.createTime})
+    </foreach>
+  </insert>
+
+</mapper>

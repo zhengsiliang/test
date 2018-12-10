@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.owitho.sso.mapper.IpLocationMapper">
+
+
+    <insert id="addIpLocation" parameterType="com.owitho.sso.model.IpLocationPo">
+        INSERT INTO sso_ip_location (ip,province,city,adcode,longitude,latitude)
+        VALUES(#{ip},#{province},#{city},#{adcode},#{longitude}, #{latitude})
+    </insert>
+
+    <select id="getIpLocationByIp" resultType="com.owitho.sso.model.IpLocationPo" parameterType="string">
+      SELECT * FROM sso_ip_location WHERE ip = #{ip} LIMIT 1
+    </select>
+
+</mapper>

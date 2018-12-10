@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.owitho.sso.mapper.LoginOutLogMapper">
+
+    <sql id="SelectSql">
+        SELECT
+        `id`, `user_id` userId, `ip`, `user_agent` `userAgent`, `refer`, `type`,`info`,
+        create_by createBy, create_time createTime,
+        update_by updateBy, update_time updateTime
+        FROM sso_login_out_log
+    </sql>
+
+    <insert id="insert" parameterType="com.owitho.sso.model.LoginOutLogPo">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into sso_login_out_log (`user_id`, `ip`, `user_agent`,`refer`, `type`,`info`, create_by)
+        values (#{userId}, #{ip}, #{userAgent}, #{refer}, #{type}, #{info}, #{createBy})
+    </insert>
+
+    <insert id="insertByType" parameterType="com.owitho.sso.model.LoginOutLogPo">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into sso_login_out_log (`user_id`, `user_name`,`ip`, `user_agent`,`refer`, `type`,`info`, `system_id`,`server_ip`,`request_url`,create_by)
+        values (#{userId}, #{userName},#{ip}, #{userAgent}, #{refer}, #{type}, #{info}, #{systemId}, #{serverIp}, #{requestUrl},#{createBy})
+    </insert>
+
+    <select id="getUserLogInfoListByUserNameAndSystemIdAndTimePeriod" parameterType="com.owitho.sso.operation.request.UserLogInfoSearchReq"
+            resultType="com.owitho.sso.model.UserLogInfo">
+      select l.user_name userName,s.name systemName,s.domain systemDomain, l.type, date_format(l.create_time,'%Y-%m-%d %H:%i:%S') createTime
+      from sso_login_out_log l left join sso_authorized_system s
+      on l.system_id = s.id
+        <where>
+             l.create_time BETWEEN #{beginTime} AND #{endTime}
+            <if test="userName != null and userName !='' ">
+               and  l.user_name = #{userName}
+            </if>
+            <if test="systemId != null and systemId !='' ">
+                and l.system_id = #{systemId}
+            </if>
+        </where>
+        ORDER BY l.create_time desc
+        LIMIT #{start},#{limit}
+    </select>
+
+    <select id="countUserLogInfoListByUserNameAndSystemIdAndTimePeriod" parameterType="com.owitho.sso.operation.request.UserLogInfoSearchReq"
+            resultType="int">
+        select COUNT(1)
+        from sso_login_out_log l left join sso_authorized_system s
+        on l.system_id = s.id
+        <where>
+            l.create_time BETWEEN #{beginTime} AND #{endTime}
+            <if test="userName != null and userName !='' ">
+                and  l.user_name = #{userName}
+            </if>
+            <if test="systemId != null and systemId !='' ">
+                and l.system_id = #{systemId}
+            </if>
+        </where>
+    </select>
+
+    <select id="createSystemAnalysisDataByDate" resultType="com.owitho.sso.model.SystemAnalysisPo">
+
+        select l.system_id systemId,s.name systemName,s.domain systemDomain, date_format(l.create_time,'%Y-%m-%d') createTime, COUNT(1) counts
+        from sso_login_out_log l left join sso_authorized_system s
+        on l.system_id = s.id
+        WHERE l.create_time BETWEEN #{beginTime} AND #{endTime} GROUP BY l.system_id
+    </select>
+
+    <select id="getUserLogInfoById" resultType="com.owitho.sso.model.LoginOutLogPo">
+        SELECT
+        `id`, `user_id` userId, user_name userName, `refer`, `type`,system_id systemId
+        FROM sso_login_out_log
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateUserLogInfoById">
+        update sso_login_out_log
+        SET user_name = #{userName} ,system_id = #{systemId}
+        where id = #{id}
+    </update>
+
+
+
+</mapper>

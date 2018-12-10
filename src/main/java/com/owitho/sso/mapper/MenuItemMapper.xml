@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.owitho.sso.mapper.MenuItemMapper" >
+  <resultMap id="BaseResultMap" type="com.owitho.sso.model.MenuItemPo">
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="system_id" property="systemId" jdbcType="INTEGER" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="memo" property="memo" jdbcType="VARCHAR" />
+    <result column="action_url" property="actionUrl" jdbcType="VARCHAR" />
+    <result column="parent_id" property="parentId" jdbcType="INTEGER" />
+    <result column="tree_path" property="treePath" jdbcType="VARCHAR" />
+    <result column="create_by" property="createBy" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_by" property="updateBy" jdbcType="INTEGER" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="sort" property="sort" jdbcType="INTEGER"/>
+  </resultMap>
+  
+  <sql id="Base_Column_List" >
+    id, system_id systemId, type, code,name, memo, action_url actionUrl, parent_id parentId,
+    tree_path treePath, create_by createBy, create_time createTime,
+    update_by updateBy, update_time updateTime,sort
+  </sql>
+ 
+  <select id="getMenuItemById" resultType="com.owitho.sso.model.MenuItemPo" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from sso_menu_item
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  <insert id="addMenuItem" parameterType="com.owitho.sso.model.MenuItemPo" >
+  		<selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    insert into sso_menu_item
+    (id,system_id,type,code,name,memo,action_url,parent_id,tree_path,create_by,create_time,update_by,update_time,sort)
+    values (#{id,jdbcType=INTEGER}, #{systemId,jdbcType=INTEGER}, #{type,jdbcType=INTEGER},
+    #{code,jdbcType=VARCHAR},#{name,jdbcType=VARCHAR}, #{memo,jdbcType=VARCHAR}, #{actionUrl,jdbcType=VARCHAR},
+    #{parentId,jdbcType=INTEGER}, #{treePath,jdbcType=VARCHAR}, #{createBy,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=INTEGER}, #{updateTime,jdbcType=TIMESTAMP},
+    #{sort,jdbcType=INTEGER}
+      )
+  </insert>
+ 
+  <update id="updateByMenuItem" parameterType="com.owitho.sso.model.MenuItemPo" >
+    update sso_menu_item
+    <set >
+      <if test="systemId != null" >
+        system_id = #{systemId,jdbcType=INTEGER},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="code != null">
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="memo != null" >
+        memo = #{memo,jdbcType=VARCHAR},
+      </if>
+      <if test="actionUrl != null" >
+        action_url = #{actionUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="parentId != null" >
+        parent_id = #{parentId,jdbcType=INTEGER},
+      </if>
+      <if test="treePath != null" >
+        tree_path = #{treePath,jdbcType=VARCHAR},
+      </if>
+      <if test="createBy != null" >
+        create_by = #{createBy,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateBy != null" >
+        update_by = #{updateBy,jdbcType=INTEGER},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="sort != null">
+        sort = #{sort,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  
+  <select id="getAllChildsByTreePathAndId" resultMap="BaseResultMap" parameterType="int">
+      SELECT
+      <include refid="Base_Column_List"/>
+    FROM sso_menu_item WHERE tree_path LIKE "${treePath}%" AND id != #{id} order by sort
+  </select>
+
+  <select id="checkMenuCode" resultType="com.owitho.sso.model.MenuItemPo">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM sso_menu_item WHERE code = #{code} AND system_id = #{systemId}
+  </select>
+
+  <select id="getAllMenuChildsById" resultMap="BaseResultMap" parameterType="int">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM sso_menu_item WHERE parent_id = #{id} order by sort
+  </select>
+
+  <delete id="deleteMenuById" parameterType="int">
+    DELETE FROM sso_menu_item WHERE id = #{id}
+  </delete>
+
+  <select id="getAllBySystemId" resultMap="BaseResultMap" parameterType="int">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM sso_menu_item WHERE system_id = #{systemId} order by sort
+  </select>
+
+  <insert id="addRoleMenuRle" parameterType="com.owitho.sso.model.RoleMenuRelPo">
+    INSERT INTO
+      sso_role_menu_rel
+       (role_id, menu_item_id, create_by, create_time, update_by, update_time)
+       VALUES
+       (#{roleId}, #{menuItemId}, #{createBy}, now(), #{updateBy}, now())
+  </insert>
+
+  <delete id="deleteRoleMenuRleByRoleId">
+    DELETE FROM rel USING sso_role_menu_rel rel, sso_menu_item item WHERE rel.menu_item_id = item.id
+    and item.system_id = #{systemId} and rel.role_id = #{roleId};
+  </delete>
+
+  <select id="getByRoleIdAndSystemId" resultMap="BaseResultMap">
+    SELECT
+      DISTINCT item.id as did,
+      item.*
+    FROM
+      sso_role_menu_rel rel, sso_menu_item item
+    WHERE
+      rel.menu_item_id = item.id and item.system_id = #{systemId} and rel.role_id = #{roleId} order by sort
+  </select>
+
+  <select id="getByRoleIdListAndSystemId" resultMap="BaseResultMap">
+    SELECT
+    DISTINCT item.id as did,
+    item.*
+    FROM
+    sso_role_menu_rel rel, sso_menu_item item
+    WHERE
+    rel.menu_item_id = item.id and item.system_id = #{systemId} and rel.role_id in
+    <foreach collection="roleIdList" item="roleId" index="index"
+             open="(" close=")" separator=",">
+      #{roleId}
+    </foreach>
+    order by sort
+  </select>
+</mapper>

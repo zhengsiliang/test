@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.owitho.sso.mapper.UserPushMapper">
+    <resultMap id="UserPushMap" type="com.owitho.sso.model.UserPushRelPo">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="app_id" jdbcType="INTEGER" property="appId"/>
+        <result column="push_id" jdbcType="VARCHAR" property="pushId"/>
+    </resultMap>
+
+    <insert id="addUserPush" parameterType="com.owitho.sso.model.UserPushRelPo">
+        INSERT INTO sso_user_push_rel (user_id,app_id,push_id,create_time,update_time)
+        VALUES(#{userId},#{appId},#{pushId},#{createTime},#{updateTime})
+    </insert>
+
+    <update id="updateUserPush" parameterType="com.owitho.sso.model.UserPushRelPo">
+        UPDATE sso_user_push_rel
+        SET push_id = #{pushId},
+        update_time = #{updateTime}
+        WHERE user_id = #{userId}
+        AND app_id = #{appId}
+    </update>
+
+    <select id="getPushId" resultType="string">
+        SELECT push_id FROM sso_user_push_rel
+        WHERE user_id = #{userId}
+        AND app_id = #{appId}
+    </select>
+
+    <select id="getPushIdList" resultType="string">
+        SELECT push_id FROM sso_user_push_rel
+        WHERE user_id IN
+        <foreach item="userId" collection="userIdList" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+        AND app_id = #{appId}
+    </select>
+</mapper>
